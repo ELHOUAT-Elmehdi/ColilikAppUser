@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { Image, ImageSourcePropType, View } from "react-native";
 
-import { icons } from "@/constants";
+import { icons, images } from "@/constants";
 
 const TabIcon = ({
   source,
@@ -71,6 +71,17 @@ export default function Layout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="driver"
+        options={{
+          title: "driver",
+          headerShown: false,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon source={images.scooter} focused={focused} />
+          ),
+        }}
+      />
+
     </Tabs>
   );
 }

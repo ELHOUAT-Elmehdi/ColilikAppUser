@@ -36,6 +36,7 @@ import support from "@/assets/icons/support.png";
 import camion from "@/assets/images/camion.png";
 import moto from "@/assets/images/moto.png";
 import elhouat from "@/assets/images/elhouat.png";
+import scooter from "@/assets/images/scooter.png"
 import notification from "@/assets/icons/notification.png";
 import box from "@/assets/icons/box.png";
 import Currentlockation from "@/assets/icons/Currentlocation.png";
@@ -58,6 +59,7 @@ export const images = {
   moto,
   camion,
   elhouat,
+  scooter
 };
 
 export const icons = {

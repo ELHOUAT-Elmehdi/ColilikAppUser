@@ -9,14 +9,24 @@ import {
   Dimensions,
   Animated,
   Pressable,
+  StyleSheet
 } from "react-native";
 import { useRouter } from "expo-router";
 import { icons, images } from "@/constants";
 import { useUserContext } from "@/app/userContext";
 
+const styles = StyleSheet.create({
+  deliveryText: {
+    fontSize: 14,
+    marginTop: 20,
+    color: "#666",
+    textAlign: "center",
+  },
+});
+
 const Home = () => {
   const router = useRouter();
-  const { imageUri, setImageUri } = useUserContext(); // Use the context
+  const { imageUri, setImageUri } = useUserContext(); 
   const [user, setUser] = useState<string>("Guest");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,13 +53,13 @@ const Home = () => {
       if (data && data.userId) {
         setUser(data.fullName || "Guest");
         setImageUri(
-          `http://192.168.236.192:8080/api/users/imageProfil/${data.userId}?timestamp=${new Date().getTime()}`,
+          `http://localhost:8080/api/users/imageProfil/${data.userId}?timestamp=${new Date().getTime()}`,
         );
       } else {
         setUser("Guest");
         setImageUri(null);
       }
-    } catch (error:any) {
+    } catch (error: any) {
       setError(error.message || "Unable to fetch user data");
       setUser("Guest");
       setImageUri(null);
@@ -87,14 +97,6 @@ const Home = () => {
       },
     });
   };
-  const navigationToDriver = () => {
-    router.push({
-      pathname: "/(root)/(driver)/driver",
-      params: {
-        userId: userId,
-      },
-    });
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100 relative">
@@ -122,34 +124,17 @@ const Home = () => {
         </TouchableOpacity>
       </View>
 
-      <Text className="mt-7 ml-5 text-lg font-bold">Activities</Text>
+      <Text className="mt-7 ml-5 text-lg font-bold">Delivery Request</Text>
       <View className="flex-row justify-between mx-5 mt-4">
-        <TouchableOpacity
-          className="flex-1 bg-yellow-50 rounded-lg p-5 mr-2 items-center justify-center"
-          onPress={() =>
-            router.push({
-              pathname: "/(root)/(delivery)/delivery",
-              params: {
-                userId: userId,
-              },
-            })
-          }
-        >
+        <View className="flex-1 bg-white-50 rounded-lg p-5 ml-2 items-center justify-center">
           <Image
-            source={images.moto}
+            source={images.scooter}
             className="max-w-full max-h-64"
             resizeMode="contain"
           />
-          <Text className="mt-3 font-semibold">Delivery</Text>
-        </TouchableOpacity>
-
-        <View className="flex-1 bg-green-50 rounded-lg p-5 ml-2 items-center justify-center">
-          <Image
-            source={images.camion}
-            className="max-w-full max-h-64"
-            resizeMode="contain"
-          />
-          <Text className="mt-3 font-semibold">Haulage</Text>
+          <Text style={styles.deliveryText}>
+          You currently have no delivery request.{"\n"}Wait a moment!
+        </Text>
         </View>
       </View>
 
@@ -189,14 +174,6 @@ const Home = () => {
           <TouchableOpacity className="flex-row items-center mt-5">
             <Image source={icons.list} className="w-5 h-5" />
             <Text className="text-base ml-2">Delivery History</Text>
-          </TouchableOpacity>
-          <View className="mt-5 border-t border-gray-200" />
-
-          <TouchableOpacity className="flex-row items-center mt-5"
-            onPress={navigationToDriver}
-            >
-            <Image source={icons.Gear} className="w-5 h-5" />
-            <Text className="text-base ml-2">Become a driver</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>
