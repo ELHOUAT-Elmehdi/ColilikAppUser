@@ -24,12 +24,13 @@ const UserProfile = () => {
   const [extractedCIN, setExtractedCIN] = useState<string>("scan your CIN");
   const [hasPermission, setHasPermission] = useState<boolean | null>(false);
   const [hasImage, setHasImage] = useState<boolean>(false);
+  const backendurl: string = "http://localhost:8080/";
   const fetchUserById = async () => {
     try {
       setIsLoading(true);
 
       const response = await fetch(
-        `http://192.168.236.192:8080/api/users/${userId}`,
+        backendurl+`api/users/${userId}`,
       );
 
       if (!response.ok) {

@@ -15,6 +15,8 @@ const Delivery = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId");
+  const backendurl: string = "http://192.168.1.115:8080/";
+
   const [isLoading, setIsLoading] = useState(false);
   interface Order {
     id: string;
@@ -27,7 +29,7 @@ const Delivery = () => {
       setIsLoading(true);
 
       const response = await fetch(
-        `http://192.168.236.192:8080/api/users/imageCIN/${userId}`,
+        backendurl+`api/users/imageCIN/${userId}`,
       );
 
       if (!response.ok) {

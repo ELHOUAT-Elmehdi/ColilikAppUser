@@ -45,6 +45,7 @@ import phone from "@/assets/icons/Phone.png";
 import Location from "@/assets/icons/Location.png";
 import Calendar from "@/assets/icons/Calendar.png";
 import Clock from "@/assets/icons/Clock.png";
+import add from "@/assets/icons/add.png";
 import GreyUser from "@/assets/icons/User_Grey.png";
 import Gear from "@/assets/icons/Gear.png";
 export const images = {
@@ -63,6 +64,7 @@ export const images = {
 };
 
 export const icons = {
+  add,
   arrowDown,
   arrowUp,
   backArrow,

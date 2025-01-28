@@ -195,3 +195,9 @@ const styles = StyleSheet.create({
 });
 
 export default MapModal;
+const handleLocationSelect = (coordinate: { latitude: number, longitude: number }, locationType: string) => {
+  setFormData((prevState) => ({
+    ...prevState,
+    [locationType]: coordinate,
+  }));
+};

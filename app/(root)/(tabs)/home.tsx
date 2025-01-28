@@ -25,13 +25,14 @@ const Home = () => {
     new Animated.Value(-Dimensions.get("window").width),
   ).current;
   const userId = "1";
+  const backendurl: string = "http://192.168.1.115:8080/";
   const fetchUserById = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
       const response = await fetch(
-        `http://192.168.236.192:8080/api/users/${userId}`,
+         backendurl+`api/users/${userId}`,
       );
 
       if (!response.ok) {
@@ -43,7 +44,7 @@ const Home = () => {
       if (data && data.userId) {
         setUser(data.fullName || "Guest");
         setImageUri(
-          `http://192.168.236.192:8080/api/users/imageProfil/${data.userId}?timestamp=${new Date().getTime()}`,
+          backendurl+`api/users/imageProfil/${data.userId}?timestamp=${new Date().getTime()}`,
         );
       } else {
         setUser("Guest");
