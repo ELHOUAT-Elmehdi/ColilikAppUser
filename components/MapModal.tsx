@@ -39,31 +39,34 @@ const MapModal: React.FC<MapModalProps> = ({
   const [address, setAddress] = useState<string>("");
 
   useEffect(() => {
-    const fetchLocation = async () => {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
+    if (visible) {
+      const fetchLocation = async () => {
+        try {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status !== "granted") {
+            Alert.alert(
+              "Permission Denied",
+              "Location access is required to select a location.",
+              [{ text: "OK", onPress: onClose }]
+            );
+            return;
+          }
+  
+          const location = await Location.getCurrentPositionAsync({});
+          setUserLocation(location.coords);
+        } catch (error) {
           Alert.alert(
-            "Permission Denied",
-            "Location access is required to select a location.",
-            [{ text: "OK", onPress: onClose }],
+            "Error",
+            "Unable to fetch your location. Please try again."
           );
-          return;
+          onClose();
         }
-
-        const location = await Location.getCurrentPositionAsync({});
-        setUserLocation(location.coords);
-      } catch (error) {
-        Alert.alert(
-          "Error",
-          "Unable to fetch your location. Please try again.",
-        );
-        onClose();
-      }
-    };
-
-    fetchLocation();
-  }, []);
+      };
+  
+      fetchLocation();
+    }
+  }, [visible]);
+  
 
   const handleMapPress = async (event: any) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;

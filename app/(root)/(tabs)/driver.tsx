@@ -17,11 +17,12 @@ import { useRouter } from "expo-router";
 import { icons, images } from "@/constants";
 import { useUserContext } from "@/app/userContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import MapModal from "@/components/MapModal";
-
+import MapModal2 from "@/components/MapModal";
 const Home = () => {
   const [isModalVisible, setModalVisible] = useState(false);
-
+  const [isModalVisible2, setModalVisible2] = useState(false);
   const [selectedLocation1, setSelectedLocation1] = useState<{
     address: string;
     coords: { latitude: number; longitude: number };
@@ -86,6 +87,47 @@ const Home = () => {
       marginBottom: 5,
     },
   });
+  const styles2 = StyleSheet.create({
+    container: {
+      padding: 20,
+      width: 350
+    },
+    card: {
+      marginTop: 15,
+      backgroundColor: '#fff',
+      borderRadius: 10,
+      padding: 15,
+      marginBottom: 1,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    locationContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    icon: {
+      fontSize: 18,
+      color: '#4a90e2',
+      marginRight: 10,
+    },
+    locationText: {
+      fontSize: 16,
+      color: '#333',
+    },
+    dottedLine: {
+      borderStyle: 'dotted',
+      borderWidth: 0.9, // Ajustez l'épaisseur
+      borderColor: '#4a90e2',
+      height: 20, // Hauteur de la ligne verticale
+      marginLeft: 11, // Centré avec l'icône
+      marginVertical: 2, // Espacement
+      // Assure que la ligne reste centrée
+      width: 0, // Garde la ligne uniquement verticale
+    },
+  });
   const [isFormVisible, setIsFormVisible] = useState(false);
 
   const backendurl: string = "http://192.168.1.115:8080/";
@@ -97,24 +139,24 @@ const Home = () => {
     }
 
     try {
-      // Récupérez les données à envoyer
+        // Supposons que c'est la date sélectionnée
+      
+      const formattedDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      const formattedTime = time.toTimeString().split(' ')[0];
+      const deliveryTime = `${formattedDate}T${formattedTime}`
+
       const payload = {
-        date: date.toISOString().split('T')[0], // Format YYYY-MM-DD
-        time: time.toLocaleTimeString(), // Format HH:mm:ss
-        startLocation: {
-          address: selectedLocation1.address,
-          latitude: selectedLocation1.coords.latitude,
-          longitude: selectedLocation1.coords.longitude,
-        },
-        endLocation: {
-          address: selectedLocation2.address,
-          latitude: selectedLocation2.coords.latitude,
-          longitude: selectedLocation2.coords.longitude,
-        },
+
+        deliveryTime,
+        latDepart: selectedLocation1.coords.latitude,
+        longDepart: selectedLocation1.coords.longitude,
+        latDest: selectedLocation2.coords.latitude,
+        longDest: selectedLocation2.coords.longitude,
+
       };
 
       // Envoyez la requête POST
-      const response = await fetch(backendurl + 'api/users/' + userId, {
+      const response = await fetch(backendurl + 'api/users/update/' + userId, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -135,39 +177,32 @@ const Home = () => {
     } catch (error) {
       console.error('Error submitting delivery details:', error);
       alert('An error occurred. Please try again.');
-    }
+    } <FontAwesome5 name="map-marker-alt" style={styles2.icon} />
   };
-
-
-
-
 
   const handleCancel = () => {
     setIsFormVisible(false);
   };
 
   const [date, setDate] = useState(new Date());
-  const [show, setShow] = useState(false);
-  const [showTime, setShowTime] = useState(false);
   const [time, setTime] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
-  const onChange = (event: any, selectedDate: Date | undefined) => {
-    const currentDate = selectedDate || date;
-    setShow(false);
-    setDate(currentDate);
-  };
-  const onTimeChange = (event: any, selectedTime: Date | undefined) => {
-    const currentTime = selectedTime || time;
-    setShowTime(false); // hide the time picker
-    setTime(currentTime); // update the time
-  };
-  const showTimepicker = () => {
-    setShowTime(true); // show the time picker
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (event.type === 'set' && selectedDate) { // Confirmation utilisateur
+      setDate(selectedDate);
+    }
   };
 
-  const showDatepicker = () => {
-    setShow(true);
+  const onTimeChange = (event: any, selectedTime?: Date) => {
+    setShowTimePicker(false);
+    if (event.type === 'set' && selectedTime) {
+      setTime(selectedTime);
+    }
   };
+
   const router = useRouter();
   const { imageUri, setImageUri } = useUserContext();
   const [user, setUser] = useState<string>("Guest");
@@ -243,14 +278,42 @@ const Home = () => {
 
 
   const [requests, setRequests] = useState([]);
+
+  const [requests1, setRequests1] = useState([]);
+
   const [loading, setLoading] = useState(true);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
+
   useEffect(() => {
     // Fonction pour effectuer le fetch
     const fetchRequests = async () => {
       try {
         const response = await fetch(backendurl + `requests/driver/${userId}`);
         const data = await response.json();
-        setRequests(data); // Mettre à jour l'état avec les requêtes
+        setRequests(data);
+        // Mettre à jour l'état avec les requêtes
+
+
+        // const response2 = await fetch(backendurl + `announcements/${data.announcementId}`);
+        // const data1 = await response2.json();
+        // setRequests1(data1);
+        const validAnnouncements = data
+          .filter(item => item.announcementId) // Ne garder que les éléments avec announcementId défini
+          .map(item => item.announcementId);
+
+        // Récupérer les détails des annonces en parallèle
+        const announcementPromises = validAnnouncements.map(async (announcementId) => {
+          const response = await fetch(backendurl + `announcements/${announcementId}`);
+          if (!response.ok) throw new Error(`Failed to fetch announcement ${announcementId}`);
+          return response.json();
+        });
+
+        // Attendre que toutes les requêtes se terminent
+        const announcements = await Promise.all(announcementPromises);
+        setRequests1(announcements);
+
+        setIsFirstLoad(false); // On indique que le premier chargement est terminé
+
       } catch (error) {
         console.error(error);
       } finally {
@@ -295,7 +358,7 @@ const Home = () => {
         </TouchableOpacity>
       </View>
 
-      {loading ? (
+      {isFirstLoad || loading || requests == null || requests.length === 0 ? (
         <View className="flex-row justify-between mx-5 mt-4">
           <View className="flex-1 bg-white-50 rounded-lg p-5 ml-2 items-center justify-center">
             <Image
@@ -310,30 +373,24 @@ const Home = () => {
         </View>
       ) : (
         <View className="flex-row justify-between mx-5 mt-4">
-          {requests.length === 0 ? (
-            <View className="flex-1 bg-white-50 rounded-lg p-5 ml-2 items-center justify-center">
-              <Image
-                source={images.scooter}
-                className="max-w-full max-h-64"
-                resizeMode="contain"
-              />
-              <Text style={styles.deliveryText}>
-                You currently have no delivery request.{"\n"}Wait a moment!
-              </Text>
-            </View>
-          ) : (
-            <View>
-              {requests.map((request) => (
-                <View key={request.id}>
-                  <Text>{`Request ID: ${request.id}`}</Text>
-                  <Text>{`Announcement ID: ${request.announcementId}`}</Text>
+          <View style={styles2.container}>
+            <Text className="text-lg font-bold">Delivery Request</Text>
+            {requests1.map((request) => (
+              <View key={request.announcementId} style={styles2.card}>
+                <View style={styles2.locationContainer}>
+                  <Image source={icons.Currentlockation} style={styles2.icon} />
+                  <Text style={styles2.locationText}>{request.depart}</Text>
                 </View>
-              ))}
-            </View>
-          )}
+                <View style={styles2.dottedLine}></View>
+                <View style={styles2.locationContainer}>
+                  <Image source={icons.Location} style={styles2.icon} />
+                  <Text style={styles2.locationText}>{request.destination}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
         </View>
       )}
-
 
       {isProfileVisible && (
         <Pressable
@@ -384,35 +441,36 @@ const Home = () => {
         <View style={styles.modalContent}>
           <Text className="text-lg font-bold mb-4">Add Delivery Details</Text>
           <View>
-            <Text>Selected Date: {date.toLocaleDateString()}</Text>
-            <Button onPress={showDatepicker} title="Select Date" />
-            {show && (
-              <DateTimePicker
-                value={date}
-                mode="date"
-                display="default"
-                onChange={onChange}
-              />
-            )}
-          </View>
-          <View style={{ marginTop: 20 }}>
-            <Text>Selected Time: {time.toLocaleTimeString()}</Text>
-            <Button onPress={showTimepicker} title="Select Time" />
+        <Text>Date sélectionnée : {date.toLocaleDateString()}</Text>
+        <Button 
+          title="Choisir une date" 
+          onPress={() => setShowDatePicker(true)} 
+        />
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="default"
+            onChange={onDateChange}
+          />
+        )}
+      </View>
 
-            {showTime && (
-              <DateTimePicker
-                value={time}
-                mode="time"
-                display="default"
-                onChange={onTimeChange}
-              />
-            )}
-          </View>
-
-
-
-
-
+      <View style={{ marginTop: 20 }}>
+        <Text>Heure sélectionnée : {time.toLocaleTimeString()}</Text>
+        <Button 
+          title="Choisir une heure" 
+          onPress={() => setShowTimePicker(true)} 
+        />
+        {showTimePicker && (
+          <DateTimePicker
+            value={time}
+            mode="time"
+            display="default"
+            onChange={onTimeChange}
+          />
+        )}
+      </View>
 
           <View style={styles1.container}>
             <Text className="mb-2">Select Start Location:</Text>
@@ -448,14 +506,13 @@ const Home = () => {
                 </Text>
               </View>
             )}
-            <Button title="Open Map" onPress={() => setModalVisible(true)} />
-            <MapModal
-              visible={isModalVisible}
-              onClose={() => setModalVisible(false)}
+            <Button title="Open Map" onPress={() => setModalVisible2(true)} />
+            <MapModal2
+              visible={isModalVisible2}
+              onClose={() => setModalVisible2(false)}
               onSelectLocation={handleSelectLocation2}
             />
           </View>
-
 
           <View style={{ marginBottom: 10 }}>
             <Button
